@@ -1,49 +1,61 @@
 {% set name = "py7zr" %}
-{% set version = "0.20.5" %}
-
+{% set version = "1.0.0" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 6fb4889c0fa32581818a3366984083253585d6c794e82c3242b8a12d6aeaabd3
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: f6bfee81637c9032f6a9f0eb045a4bfc7a7ff4138becfc42d7cb89b54ffbfef1
 
 build:
-  number: 1
+  number: 0
   entry_points:
     - py7zr = py7zr.__main__:main
   script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  skip: true  # [py<39]
 
 requirements:
   host:
     - pip
     - python
-    - setuptools
-    - setuptools-scm
-    - wheel
+    - setuptools >=63
+    - setuptools-scm >=7.0.5
+    - python-build
   run:
-    - brotli-python >=1.0.9
-    - importlib-metadata  # [py<38]
-    - inflate64 >=0.3.1
-    - multivolumefile >=0.2.3
-    - psutil
-    - pybcj >=0.6.0
-    - pycryptodomex >=3.6.6
-    - pyppmd >=0.18.1,<1.1.0
     - python
-    - pyzstd >=0.14.4
     - texttable
+    - pycryptodomex >=3.20.0
+    - brotli-python >=1.1.0
+    - brotlicffi >=1.1.0.0
+    - psutil
+    - pyzstd >=0.16.1
+    - pyppmd >=1.1.0,<1.3.0
+    - pybcj >=1.0.0,<1.1.0
+    - multivolumefile >=0.2.3
+    - inflate64 >=1.0.0,<1.1.0
+
+# ERROR    root:test_concurrent.py:79 Caught error: <urlopen error [Errno 60] Operation timed out>
+{% set deselect_tests = " --deselect=tests/test_concurrent.py::test_concurrent_futures" %}
 
 test:
+  source_files:
+    - tests
   imports:
     - py7zr
   commands:
     - pip check
+    - python -c "from importlib.metadata import version; assert(version('{{ name }}')=='{{ version }}')"
+    - pytest -v tests {{ deselect_tests }}
     - py7zr --help
   requires:
     - pip
+    - pytest
+    - pytest-benchmark
+    - py-cpuinfo
+    - requests
+    - pytest-httpserver
 
 about:
   description: |
