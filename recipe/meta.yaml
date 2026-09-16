@@ -10,8 +10,12 @@ source:
   sha256: ca38b5d1ed81d93e09055cc4c9ac38a63ea1ea219a573e45f99d267ff5c49470
 
 build:
-  number: 0
-  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  number: 1
+  script:
+    # Anaconda channel packages are failing the downstream security scanner
+    # because these test fixtures contain encrypted/password-protected PDFs.
+    - rm -f ${SRC_DIR}/tests/data/encrypted_*.7z
+    - {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
   entry_points:
     - py7zr = py7zr.__main__:main
   skip: true  # [py<310]
@@ -53,6 +57,24 @@ requirements:
 # >       with pytest.raises(Bad7zFile):
 # E       Failed: DID NOT RAISE <class 'py7zr.exceptions.Bad7zFile'>
 {% set deselect_tests = deselect_tests + " --deselect=tests/test_extract.py::test_register_unpack_archive_error" %}  # [win]
+
+# These tests require encrypted PDF fixtures removed from the package
+# to avoid triggering downstream security scanners.
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_cli.py::test_cli_encrypted_extract" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_cli.py::test_cli_encrypted_wrong_password" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_cli.py::test_cli_encrypted_zero_length_password" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_cli.py::test_cli_encrypted_no_password" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_encryption.py::test_extract_encrypted_1" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_encryption.py::test_extract_encrypted_1_mem" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_encryption.py::test_extract_encrypted_no_password" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_encryption.py::test_extract_encrypted_needs_password" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_encryption.py::test_extract_header_encrypted_no_password" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_encryption.py::test_extract_header_encrypted_no_password_2" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_encryption.py::test_extract_encrypted_2" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_encryption.py::test_extract_encrypted_5" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_encryption.py::test_extract_encrypted_6" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_info.py::test_archiveinfo_7zaes_lzma" %}
+{% set deselect_tests = deselect_tests + " --deselect=tests/test_info.py::test_archivetest_7zaes" %}
 
 test:
   source_files:
