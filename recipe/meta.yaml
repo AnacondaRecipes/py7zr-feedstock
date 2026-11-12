@@ -10,7 +10,7 @@ source:
   sha256: 17806c7b715cd70203e6f9b6b0a6c598ab6b5d4268b69a7049ad4c0e3a963506
 
 build:
-  number: 0
+  number: 1
   script:
     # Anaconda channel packages are failing the downstream security scanner
     # because these test fixtures contain encrypted/password-protected PDFs.
